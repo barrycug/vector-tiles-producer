@@ -22,20 +22,20 @@ Install and compile
     On Debian-based systems:
 
     Install locate
-
+    
     ::
-
+    
         sudo apt-get install locate
 
 
     Update the database:
-
+    
     ::
-
+    
         sudo updatedb
 
     After the installation of the dependancies, use
-
+    
     ::
     
         make create
@@ -48,12 +48,13 @@ Use it!
 
     Chose a tile (for the whole world: z=0, x=0, y=0). This is the area for which you want to create subtiles until the maxz zoom level. If you want compressed tiles, compress should be 1, else 0. Give then a path to your Mapnik stylesheet (xml).
 
-::
+    ::
+    
         ./create_tiles z maxz x y compress path/to/stylesheet
 
     To get informations about the created tiles, I have modified a bit the Mapnik-vector-tile's "tileinfo" example to read easily the informations of a vector tile.
 
-::
+    ::
 
         make tileinfo
 
