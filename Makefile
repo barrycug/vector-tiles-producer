@@ -6,10 +6,10 @@ MAPNIK_VECTOR=$(shell locate vector_tile.pb.cc)
 MAPNIK_VECTOR_PATH=$(shell locate -r mapnik-vector-tile/src\$$)
 
 tileinfo: 
-	$(CXX) tileinfo.cpp $(MAPNIK_VECTOR) -o tileinfo -lprotobuf-lite -lz -I$(MAPNIK_VECTOR_PATH) 
+	$(CXX) -o tileinfo tileinfo.cpp $(MAPNIK_VECTOR) -lprotobuf-lite -lz -I$(MAPNIK_VECTOR_PATH) 
 
 create: 
-	$(CXX) -o create_tiles $(MAPNIK_VECTOR) making_all_tiles.cpp -I$(MAPNIK_VECTOR_PATH) $(MAPNIK_CXXFLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_CXXFLAGS) $(PROTOBUF_LDFLAGS) -std=c++0x
+	$(CXX) -o create_tiles $(MAPNIK_VECTOR) create_tiles.cpp -I$(MAPNIK_VECTOR_PATH) $(MAPNIK_CXXFLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_CXXFLAGS) $(PROTOBUF_LDFLAGS) -std=c++0x
 
 clean:
 	@rm -f ./tileinfo

@@ -46,11 +46,11 @@ Install and compile
 Use it!
 -------
 
-    Chose a tile (for the whole world: z=0, x=0, y=0). This is the area for which you want to create subtiles until the maxz zoom level. If you want compressed tiles, compress should be 1, else 0. Give then a path to your Mapnik stylesheet (xml).
+    Chose a tile (for the whole world: z=0, x=0, y=0). This is the area for which you want to create subtiles until the maxz zoom level. Give then a path to your Mapnik stylesheet (xml). If you want compressed PBF tiles, add the --compress option, else you will get uncompressed PBF tiles. 
 
     ::
     
-        ./create_tiles z maxz x y compress path/to/stylesheet
+        ./create_tiles z maxz x y [--compress] path/to/stylesheet
 
     To get informations about the created tiles, I have modified a bit the Mapnik-vector-tile's "tileinfo" example to read easily the informations of a vector tile.
 

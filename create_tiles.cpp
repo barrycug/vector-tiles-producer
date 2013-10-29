@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <boost/filesystem.hpp>
+#include <vector>
 
 // mapnik
 #include <mapnik/map.hpp>
@@ -20,21 +22,26 @@
 #include <vector_tile_util.hpp>
 #include <vector_tile_compression.hpp>
 
-#include <boost/filesystem.hpp>
-#include <vector>
-
 using namespace std;
 using namespace mapnik;
 
 string style_path;
+bool compression = false;
 
 void create_tiles(int z, int maxz, int x, int y) ;
 void create_single_tile(int z, int x, int y) ;
 void create_path(int z, int x) ;
 
-int main (int argc, char* const argv[]) {
-    if (argc != 6) {
-        clog << "command: " << argv[0] << " minz maz x y path/to/stylesheet.xml\n";
+int main (int argc, char* argv[]) {
+    for (int i=0 ; i<argc ; i++){
+        if (compression)
+            argv[i - 1] = argv[i];
+        if (strncmp(argv[i], "--compress", 10) == 0)
+            compression = true;
+    }
+
+    if (argc != 6 && argc != 7) {
+        clog << "command: " << argv[0] << "[--compress] minz maz x y path/to/stylesheet.xml\n";
         clog << "    x and y are the values at the minz zoom_level\n";
         return EXIT_FAILURE;
     }
@@ -107,9 +114,13 @@ void create_single_tile(int z, int x, int y) {
 
     string buffer, compressed;
     tile.SerializeToString(&buffer);
-    mapnik::vector::compress(buffer, compressed);        
-    buffer = compressed;
-    cout << "Creating compressed tile for z = " << z << " ; x = " << x << " ; y = " << y <<  " ; stylesheet: " << style_path << "\n";
+    if (compression) {
+        mapnik::vector::compress(buffer, compressed);        
+        buffer = compressed;
+        cout << "Creating compressed tile for z = " << z << " ; x = " << x << " ; y = " << y <<  " ; stylesheet: " << style_path << "\n";
+    } else {
+        cout << "Creating tile for z = " << z << " ; x = " << x << " ; y = " << y <<  " ; stylesheet: " << style_path << "\n";
+    }
     ofstream output(to_string(z) + "/" + to_string(x) + "/" + to_string(y) + ".pbf");
     output << buffer ;
 }
