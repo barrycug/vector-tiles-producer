@@ -26,24 +26,11 @@ Install Mapnik. <https://github.com/mapnik/mapnik>
 
 Get mapnik-vector-tiles sources. <https://github.com/mapbox/mapnik-vector-tile>
 
+Install the dependancies.
 
-On Debian-based systems:
-Install locate (there is an ugly locate in the Makefile for the moment, to find the mapnik-vector-tiles sources)
-    
-    ::
-    
-        sudo apt-get install locate
+Change, in the Makefile, the path to the vector_tile.pb.cc file and to the mapnik-vector-tile sources directory (you can find them using the 'locate' command. If you do so, do not forget to updatedb before searching). Then:
+   
 
-
-Update the database:
-    
-    ::
-    
-        sudo updatedb
-
-
-After the installation of the dependancies, use
-    
     ::
     
         make create
@@ -68,5 +55,3 @@ To get informations about the created tiles, I have modified a bit the Mapnik-ve
 
         make tileinfo
 
-
-The Makefile is a bit tricky for the moment and suppose the mapnik-vector-tile's sources are in a directory called "mapnik-vector-tile/src" (it should be the case if you clone the mapnik-vector-tile's repository using git).
