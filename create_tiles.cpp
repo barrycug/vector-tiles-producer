@@ -26,7 +26,10 @@ using namespace std;
 using namespace mapnik;
 
 string style_path;
-bool compression = false;
+int compression = 0;
+//TODO should be possible to change
+int tile_size = 256;
+int path_multiplier = 16;
 
 void create_tiles(int z, int maxz, int x, int y) ;
 void create_single_tile(int z, int x, int y) ;
@@ -35,14 +38,14 @@ void create_path(int z, int x) ;
 int main (int argc, char* argv[]) {
     for (int i=0 ; i<argc ; i++){
         if (compression)
-            argv[i - 1] = argv[i];
+            argv[i - compression] = argv[i];
         if (strncmp(argv[i], "--compress", 10) == 0)
-            compression = true;
+            compression ++;
     }
 
     if (argc != 6 && argc != 7) {
         clog << "command: " << argv[0] << "[--compress] minz maz x y path/to/stylesheet.xml\n";
-        clog << "    x and y are the values at the minz zoom_level\n";
+        clog << "    where x and y are the values at the minz zoom_level\n";
         return EXIT_FAILURE;
     }
 
@@ -54,7 +57,7 @@ int main (int argc, char* argv[]) {
 
     //add plugins to be able to load the shapefile (and also other formats) in load_map()
     datasource_cache::instance().register_datasources("/usr/lib/mapnik/input/");
-    
+
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     create_path(minz, x);
@@ -76,7 +79,7 @@ void create_path(int z, int x) {
 void create_tiles(int maxz, int z, int x, int y) {
     //create the current tile
     create_single_tile(z, x, y);
- 
+
     if (z+1 > maxz) { return; }
 
     create_path(z+1, 2*x);
@@ -91,10 +94,9 @@ void create_tiles(int maxz, int z, int x, int y) {
 
 void create_single_tile(int z, int x, int y) {
     // initialize map
-    int tile_size = 256;
     Map map(tile_size, tile_size);
     load_map(map, style_path, false);
-    
+
     // bounding box
     mapnik::vector::spherical_mercator merc(tile_size);
     double minx, miny, maxx, maxy;
@@ -106,16 +108,16 @@ void create_single_tile(int z, int x, int y) {
     map.zoom_to_box(bbox);
 
     mapnik::vector::tile tile;
-    mapnik::vector::backend_pbf backend(tile, 16);
-    request m_req(map.width(), map.height(), map.get_current_extent());
-    mapnik::vector::processor<mapnik::vector::backend_pbf> ren(backend, map, m_req);
+    mapnik::vector::backend_pbf backend(tile, path_multiplier);
+    request mapnik_request(tile_size, tile_size, bbox);
+    mapnik::vector::processor<mapnik::vector::backend_pbf> ren(backend, map, mapnik_request);
 
     ren.apply();
 
     string buffer, compressed;
     tile.SerializeToString(&buffer);
     if (compression) {
-        mapnik::vector::compress(buffer, compressed);        
+        mapnik::vector::compress(buffer, compressed);
         buffer = compressed;
         cout << "Creating compressed tile for z = " << z << " ; x = " << x << " ; y = " << y <<  " ; stylesheet: " << style_path << "\n";
     } else {
