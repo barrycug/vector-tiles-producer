@@ -25,11 +25,8 @@
 using namespace std;
 using namespace mapnik;
 
-string style_path;
-int compression = 0;
-//TODO should be possible to change
-int tile_size = 256;
-int path_multiplier = 16;
+static int compression = 0;
+static string style_path;
 
 void create_tiles(int z, int maxz, int x, int y) ;
 void create_single_tile(int z, int x, int y) ;
@@ -69,6 +66,9 @@ int main (int argc, char* argv[]) {
     return EXIT_SUCCESS;
 }
 
+/*
+    create the directories where the tiles will be generated
+*/
 void create_path(int z, int x) {
     string pathname = to_string(z) + "/" + to_string(x);
     clog << "Making path " << pathname << "\n";
@@ -76,30 +76,40 @@ void create_path(int z, int x) {
     boost::filesystem::create_directories(pathname);
 }
 
+/*
+    create all tiles and paths recursively
+*/
 void create_tiles(int maxz, int z, int x, int y) {
     //create the current tile
     create_single_tile(z, x, y);
 
-    if (z+1 > maxz) { return; }
+    if (z+1 <= maxz) {
+        create_path(z+1, 2*x);
+        create_path(z+1, 2*x+1);
 
-    create_path(z+1, 2*x);
-    create_path(z+1, 2*x+1);
-
-    //recursively create the four subtiles (at the next zoom level) of this tile
-    create_tiles(maxz, z+1, 2*x,   2*y  );
-    create_tiles(maxz, z+1, 2*x+1, 2*y  );
-    create_tiles(maxz, z+1, 2*x,   2*y+1);
-    create_tiles(maxz, z+1, 2*x+1, 2*y+1);
+        //recursively create the four subtiles (at the next zoom level) of this tile
+        create_tiles(maxz, z+1, 2*x,   2*y  );
+        create_tiles(maxz, z+1, 2*x+1, 2*y  );
+        create_tiles(maxz, z+1, 2*x,   2*y+1);
+        create_tiles(maxz, z+1, 2*x+1, 2*y+1);
+    }
 }
 
+/*
+    creation of a single tile
+*/
 void create_single_tile(int z, int x, int y) {
-    // initialize map
-    Map map(tile_size, tile_size);
+    int tile_size = 256;
+    int path_multiplier = 16;
+    double minx, miny, maxx, maxy;
+    string buffer, compressed;
+
+    // initialize map with the data
+    Map map(tile_size, tile_size, "900913");
     load_map(map, style_path, false);
 
     // bounding box
     mapnik::vector::spherical_mercator merc(tile_size);
-    double minx, miny, maxx, maxy;
     merc.xyz(x, y, z, minx, miny, maxx, maxy);
 
     box2d<double> bbox;
@@ -114,7 +124,6 @@ void create_single_tile(int z, int x, int y) {
 
     ren.apply();
 
-    string buffer, compressed;
     tile.SerializeToString(&buffer);
     if (compression) {
         mapnik::vector::compress(buffer, compressed);
