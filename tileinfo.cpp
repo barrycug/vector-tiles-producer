@@ -1,3 +1,8 @@
+/*
+    adapted from github.com/mapbox/mapnik-vector-tile
+    license: https://github.com/mapbox/mapnik-vector-tile/blob/master/LICENSE
+*/
+
 #include <vector_tile.pb.h>
 #include <vector_tile_compression.hpp>
 #include <vector>
@@ -8,19 +13,19 @@
 int main(int argc, char** argv){
     GOOGLE_PROTOBUF_VERIFY_VERSION;
     std::vector<std::string> args;
-    
+
     if (argc != 2) {
         std::clog << "please pass the path to an uncompressed or zlib-compressed protobuf tile\n";
         return EXIT_FAILURE;
     }
-    
+
     try {
         std::string filename = argv[1];
         std::ifstream stream(filename.c_str(),std::ios_base::in|std::ios_base::binary);
         if (!stream.is_open()) {
             throw std::runtime_error("could not open: '" + filename + "'");
         }
-        
+
         // we are using lite library, so we copy to a string instead of using ParseFromIstream
         std::string message(std::istreambuf_iterator<char>(stream.rdbuf()),(std::istreambuf_iterator<char>()));
         stream.close();
@@ -41,7 +46,7 @@ int main(int argc, char** argv){
                 std::clog << "failed to parse protobuf\n";
             }
         }
-        
+
         for (unsigned i=0;i<tile.layers_size();++i) {
             mapnik::vector::tile_layer const& layer = tile.layers(i);
             std::cout << "layer: " << layer.name() << "\n";
