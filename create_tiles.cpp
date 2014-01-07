@@ -26,13 +26,16 @@ using namespace std;
 using namespace mapnik;
 
 static int compression = 0;
-static string style_path;
+static int tile_size = 256;
 
-void create_tiles(int z, int maxz, int x, int y) ;
-void create_single_tile(int z, int x, int y) ;
+void create_tiles(int z, int maxz, int x, int y, Map tile_map) ;
+void create_single_tile(int z, int x, int y, Map tile_map) ;
 void create_path(int z, int x) ;
 
 int main (int argc, char* argv[]) {
+    int minz, maxz, x, y;
+    string style_path;
+
     for (int i=0 ; i<argc ; i++){
         if (compression)
             argv[i - compression] = argv[i];
@@ -46,10 +49,10 @@ int main (int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    int minz = atoi(argv[1]);
-    int maxz = atoi(argv[2]);
-    int x = atoi(argv[3]);
-    int y = atoi(argv[4]);
+    minz = atoi(argv[1]);
+    maxz = atoi(argv[2]);
+    x = atoi(argv[3]);
+    y = atoi(argv[4]);
     style_path = argv[5];
 
     //add plugins to be able to load the shapefile (and also other formats) in load_map()
@@ -57,8 +60,12 @@ int main (int argc, char* argv[]) {
 
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
+    // initialize map with the data
+    Map tile_map(tile_size, tile_size, "900913");
+    load_map(tile_map, style_path, true);
+
     create_path(minz, x);
-    create_tiles(maxz, minz, x, y);
+    create_tiles(maxz, minz, x, y, tile_map);
     cout << "Tiles created.\n";
 
     google::protobuf::ShutdownProtobufLibrary();
@@ -71,7 +78,6 @@ int main (int argc, char* argv[]) {
 */
 void create_path(int z, int x) {
     string pathname = to_string(z) + "/" + to_string(x);
-    clog << "Making path " << pathname << "\n";
     boost::filesystem::path path(pathname);
     boost::filesystem::create_directories(pathname);
 }
@@ -79,34 +85,30 @@ void create_path(int z, int x) {
 /*
     create all tiles and paths recursively
 */
-void create_tiles(int maxz, int z, int x, int y) {
+void create_tiles(int maxz, int z, int x, int y, Map tile_map) {
+
     //create the current tile
-    create_single_tile(z, x, y);
+    create_single_tile(z, x, y, tile_map);
 
     if (z+1 <= maxz) {
         create_path(z+1, 2*x);
         create_path(z+1, 2*x+1);
 
         //recursively create the four subtiles (at the next zoom level) of this tile
-        create_tiles(maxz, z+1, 2*x,   2*y  );
-        create_tiles(maxz, z+1, 2*x+1, 2*y  );
-        create_tiles(maxz, z+1, 2*x,   2*y+1);
-        create_tiles(maxz, z+1, 2*x+1, 2*y+1);
+        create_tiles(maxz, z+1, 2*x,   2*y  , tile_map);
+        create_tiles(maxz, z+1, 2*x+1, 2*y  , tile_map);
+        create_tiles(maxz, z+1, 2*x,   2*y+1, tile_map);
+        create_tiles(maxz, z+1, 2*x+1, 2*y+1, tile_map);
     }
 }
 
 /*
     creation of a single tile
 */
-void create_single_tile(int z, int x, int y) {
-    int tile_size = 256;
+void create_single_tile(int z, int x, int y, Map tile_map) {
     int path_multiplier = 16;
     double minx, miny, maxx, maxy;
     string buffer, compressed;
-
-    // initialize map with the data
-    Map map(tile_size, tile_size, "900913");
-    load_map(map, style_path, false);
 
     // bounding box
     mapnik::vector::spherical_mercator merc(tile_size);
@@ -115,12 +117,12 @@ void create_single_tile(int z, int x, int y) {
     box2d<double> bbox;
     bbox.init(minx, miny, maxx, maxy);
 
-    map.zoom_to_box(bbox);
+    tile_map.zoom_to_box(bbox);
 
     mapnik::vector::tile tile;
     mapnik::vector::backend_pbf backend(tile, path_multiplier);
     request mapnik_request(tile_size, tile_size, bbox);
-    mapnik::vector::processor<mapnik::vector::backend_pbf> ren(backend, map, mapnik_request);
+    mapnik::vector::processor<mapnik::vector::backend_pbf> ren(backend, tile_map, mapnik_request);
 
     ren.apply();
 
@@ -128,9 +130,9 @@ void create_single_tile(int z, int x, int y) {
     if (compression) {
         mapnik::vector::compress(buffer, compressed);
         buffer = compressed;
-        cout << "Creating compressed tile for z = " << z << " ; x = " << x << " ; y = " << y <<  " ; stylesheet: " << style_path << "\n";
+        cout << "Creating compressed tile for z = " << z << " ; x = " << x << " ; y = " << y << "\n" ;
     } else {
-        cout << "Creating tile for z = " << z << " ; x = " << x << " ; y = " << y <<  " ; stylesheet: " << style_path << "\n";
+        cout << "Creating tile for z = " << z << " ; x = " << x << " ; y = " << y << "\n";
     }
     ofstream output(to_string(z) + "/" + to_string(x) + "/" + to_string(y) + ".pbf");
     output << buffer ;
