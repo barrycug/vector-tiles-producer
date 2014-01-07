@@ -1,5 +1,5 @@
-Vector tiles creator
-====================
+Vector tiles producer
+=====================
 
 
 This is an experimental project to create vector tiles.
@@ -23,23 +23,26 @@ Install and compile
 
 Install Mapnik. <https://github.com/mapnik/mapnik>
 
-
-Get mapnik-vector-tiles sources. <https://github.com/mapbox/mapnik-vector-tile>
-
-Install the dependancies.
-
-Change the path to the vector_tile.pb.cc file and to the mapnik-vector-tile sources directory (you can find them using the 'locate' command. If you do so, do not forget to updatedb before searching). Then:
+Get mapnik-vector-tile sources. <https://github.com/mapbox/mapnik-vector-tile>
+Go to Mapnik-vector-tile directory and:
 
 ::
 
-    export MAPNIK_VECTOR=path/to/your/vector_tile.pb.cc
-    export MAPNIK_VECTOR_PATH=path/to/your/mapnik-vector-tile-source-directory
+    make
 
+Then:
+
+::
+
+    export MAPNIK_VECTOR=path/to/your/mapnik-vector-tile/sources
+
+The sources directory should also contain the vector_tile.pb.cc and vector_tile.pb.h (they are generated when doing "make").
+
+And
 
 ::
 
     make create
-
 
 to compile the project.
 
