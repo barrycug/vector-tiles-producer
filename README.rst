@@ -63,3 +63,8 @@ To get informations about the created tiles, I have modified a bit the Mapnik-ve
 
     make tileinfo
 
+
+Known problems
+--------------
+
+For tiles containing big polygons (which are on several tiles), the produced geometry may contain (parts of) the tile bounds.
