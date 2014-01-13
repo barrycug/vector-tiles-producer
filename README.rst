@@ -8,7 +8,7 @@ This is an experimental project to create vector tiles.
 What does this do?
 ------------------
 
-This should create vector tiles for a given area at chosen zoom levels.
+This creates vector tiles based on the mapnik proto for a given area at chosen zoom levels. The produced geometries are clipped at the limits of the tiles.
 
 Dependancies:
 -------------
