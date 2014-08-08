@@ -34,7 +34,7 @@ Then:
 
 ::
 
-    export MAPNIK_VECTOR=path/to/your/mapnik-vector-tile/sources
+    export MAPNIK_VECTOR=path/to/your/mapnik-vector-tile/src
 
 The sources directory should also contain the vector_tile.pb.cc and vector_tile.pb.h (they are generated when doing "make").
 
