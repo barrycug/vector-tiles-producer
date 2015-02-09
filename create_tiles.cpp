@@ -111,7 +111,7 @@ void create_single_tile(int z, int x, int y, Map tile_map) {
     string buffer, compressed;
 
     // bounding box
-    mapnik::vector::spherical_mercator merc(tile_size);
+    mapnik::vector_tile_impl::spherical_mercator merc(tile_size);
     merc.xyz(x, y, z, minx, miny, maxx, maxy);
 
     box2d<double> bbox;
@@ -119,16 +119,16 @@ void create_single_tile(int z, int x, int y, Map tile_map) {
 
     tile_map.zoom_to_box(bbox);
 
-    mapnik::vector::tile tile;
-    mapnik::vector::backend_pbf backend(tile, path_multiplier);
+    vector_tile::Tile tile;
+    mapnik::vector_tile_impl::backend_pbf backend(tile, path_multiplier);
     request mapnik_request(tile_size, tile_size, bbox);
-    mapnik::vector::processor<mapnik::vector::backend_pbf> ren(backend, tile_map, mapnik_request);
+    mapnik::vector_tile_impl::processor<mapnik::vector_tile_impl::backend_pbf> ren(backend, tile_map, mapnik_request);
 
     ren.apply();
 
     tile.SerializeToString(&buffer);
     if (compression) {
-        mapnik::vector::compress(buffer, compressed);
+        mapnik::vector_tile_impl::zlib_compress(buffer, compressed);
         buffer = compressed;
         cout << "Creating compressed tile for z = " << z << " ; x = " << x << " ; y = " << y << "\n" ;
     } else {
